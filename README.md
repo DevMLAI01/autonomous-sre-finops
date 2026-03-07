@@ -277,4 +277,9 @@ Set `LANGCHAIN_PROJECT` in `.env` to organise traces by project.
 
 ## License
 
-MIT
+This project is intended **for educational and demonstration purposes only**.
+
+- You may use, study, and modify this code for personal learning and non-commercial projects.
+- Do not deploy this system against production AWS infrastructure without thorough security review.
+- The author provides no warranties and accepts no liability for any damages arising from use of this code.
+- Third-party services used (Google Gemini, Qdrant, LangSmith, GitHub, AWS) are subject to their own terms of service.
