@@ -26,6 +26,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from langgraph.types import Command
 
 from graph.orchestrator import compile_graph
 
@@ -99,10 +100,13 @@ async def resume(thread_id: str, approved: bool) -> None:
 
         console.print(f"[cyan]Resuming thread {thread_id} with decision: {'APPROVED' if approved else 'REJECTED'}[/]")
 
-        async for event in graph.astream(approved, config=config):
+        async for event in graph.astream(Command(resume=approved), config=config):
             node = list(event.keys())[0]
             state = event[node]
-            console.print(f"[dim]{node}[/] -> {state.get('decision', '')}")
+            if isinstance(state, dict):
+                console.print(f"[dim]{node}[/] -> {state.get('decision', '')}")
+            else:
+                console.print(f"[dim]{node}[/]")
 
     console.print(Panel("[bold green]Workflow resumed and complete.[/]", border_style="green"))
 

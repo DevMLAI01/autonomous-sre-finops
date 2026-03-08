@@ -93,8 +93,15 @@ def _build_ragas_dataset(eval_cases: list[dict]) -> Dataset:
         print(f"[ragas_eval] Evaluating {resource['instance_id']}...")
         assessment = assess_resource(resource)
 
+        status = assessment["status"]
+        reason = assessment["reason"]
+        if status == "ORPHANED":
+            answer = f"No, this instance is not actively needed by any current project. {reason}"
+        else:
+            answer = f"Yes, this instance is actively needed by a current project. {reason}"
+
         questions.append(question)
-        answers.append(f"{assessment['status']}: {assessment['reason']}")
+        answers.append(answer)
         contexts.append(assessment.get("context_chunks", ["No context retrieved."]))
         ground_truths.append(gt)
 
