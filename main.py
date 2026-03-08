@@ -75,10 +75,13 @@ async def _run_new(thread_id: str, checkpointer) -> None:
             pr = state.get("pr_result", {})
             console.print(f"[green][OK] Remediate[/] - PR created: {pr.get('pr_url', 'N/A')}")
         elif node == "__interrupt__":
-            payload = state[0].value if hasattr(state[0], 'value') else state
+            # state is a tuple of Interrupt objects; may be empty if interrupt_before fired
+            payload = {}
+            if state and hasattr(state[0], 'value') and isinstance(state[0].value, dict):
+                payload = state[0].value
             console.print(Panel(
                 f"[bold yellow]HITL GATE — Awaiting Human Approval[/]\n\n"
-                f"{payload.get('message', 'Approval required.')}\n\n"
+                f"{payload.get('message', 'Graph paused at HITL gate. Review the PR and resume.')}\n\n"
                 f"[dim]Resume with:[/]\n"
                 f"  python main.py --resume --thread-id {thread_id} --approved",
                 title="Human-in-the-Loop",
