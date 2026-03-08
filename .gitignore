@@ -1,3 +1,6 @@
+# Claude Code context (local only — contains project internals)
+CLAUDE.md
+
 # Environment
 .env
 *.env.local
