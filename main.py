@@ -84,7 +84,7 @@ async def _run_new(thread_id: str, checkpointer) -> None:
                 f"[bold yellow]HITL GATE — Awaiting Human Approval[/]\n\n"
                 f"{payload.get('message', 'Graph paused at HITL gate. Review the PR and resume.')}\n\n"
                 f"[dim]Resume with:[/]\n"
-                f"  python main.py --resume --thread-id {thread_id} --approved",
+                f"  uv run python main.py --resume --thread-id {thread_id} --approved",
                 title="Human-in-the-Loop",
                 border_style="yellow",
             ))
