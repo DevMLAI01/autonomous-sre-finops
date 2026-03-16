@@ -3,6 +3,7 @@ RAG Retriever
 Queries Qdrant using resource tags and instance metadata to determine
 whether a flagged resource is protected, active, or orphaned.
 """
+
 from __future__ import annotations
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -12,28 +13,30 @@ from agents.llm_client import get_embeddings, get_llm
 from config import cfg
 
 
-RETRIEVER_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """You are an SRE context analyst. Given internal documentation excerpts and an AWS resource's metadata,
+RETRIEVER_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are an SRE context analyst. Given internal documentation excerpts and an AWS resource's metadata,
 determine whether this resource is:
 - PROTECTED: actively needed (e.g., reserved for a load test, disaster recovery standby, etc.)
 - ORPHANED: safe to decommission (no active project, forgotten resource, etc.)
 
 Be conservative — if there is ANY indication the resource might be needed, mark it as PROTECTED.
 Reply with a JSON object: {{"status": "PROTECTED"|"ORPHANED", "reason": "<one sentence explanation>", "confidence": 0.0-1.0}}""",
-    ),
-    (
-        "human",
-        """Resource metadata:
+        ),
+        (
+            "human",
+            """Resource metadata:
 {resource_metadata}
 
 Relevant documentation excerpts:
 {context}
 
 What is the status of this resource?""",
-    ),
-])
+        ),
+    ]
+)
 
 
 def _get_vector_store() -> QdrantVectorStore:
@@ -94,10 +97,12 @@ def assess_resource(resource: dict) -> dict:
     llm = get_llm(temperature=0.0)
     chain = RETRIEVER_PROMPT | llm
 
-    response = chain.invoke({
-        "resource_metadata": resource_metadata,
-        "context": context_text,
-    })
+    response = chain.invoke(
+        {
+            "resource_metadata": resource_metadata,
+            "context": context_text,
+        }
+    )
 
     # Parse LLM JSON response safely
     try:

@@ -6,6 +6,7 @@ Usage:
     llm = get_llm()
     embeddings = get_embeddings()
 """
+
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from config import cfg

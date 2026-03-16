@@ -6,6 +6,7 @@ and upserts into Qdrant Serverless.
 Usage:
     python -m rag.ingest --docs-dir ./docs
 """
+
 from __future__ import annotations
 
 import argparse
@@ -65,11 +66,13 @@ def chunk_documents(documents: list[dict]) -> list[dict]:
     for doc in documents:
         splits = splitter.split_text(doc["content"])
         for i, split in enumerate(splits):
-            chunks.append({
-                "id": str(uuid.uuid4()),
-                "content": split,
-                "metadata": {"source": doc["source"], "chunk_index": i},
-            })
+            chunks.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "content": split,
+                    "metadata": {"source": doc["source"], "chunk_index": i},
+                }
+            )
     print(f"[ingest] Created {len(chunks)} chunks")
     return chunks
 

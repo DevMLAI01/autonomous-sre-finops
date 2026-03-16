@@ -142,9 +142,7 @@ class TestAssessResource:
 
         mock_llm = MagicMock()
         # LLM returns a low-confidence PROTECTED classification
-        mock_llm.return_value = MagicMock(
-            content='{"status": "PROTECTED", "reason": "Uncertain.", "confidence": 0.3}'
-        )
+        mock_llm.return_value = MagicMock(content='{"status": "PROTECTED", "reason": "Uncertain.", "confidence": 0.3}')
 
         with (
             patch("rag.retriever._get_vector_store", return_value=mock_store),

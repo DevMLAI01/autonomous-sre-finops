@@ -4,6 +4,7 @@ Exposes tools for cloning Terraform files, modifying them, and opening PRs.
 
 All write operations (PRs) are gated — no direct terraform apply ever runs.
 """
+
 from __future__ import annotations
 
 import base64
@@ -19,6 +20,7 @@ from mcp.types import TextContent, Tool
 from config import cfg
 
 app = Server("github-mcp")
+
 
 def _gh_repo():
     g = Github(cfg.GITHUB_TOKEN)
@@ -36,7 +38,11 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "file_path": {"type": "string", "description": "Path to the .tf file in the repo"},
-                    "branch": {"type": "string", "description": "Branch to read from (default: main)", "default": "main"},
+                    "branch": {
+                        "type": "string",
+                        "description": "Branch to read from (default: main)",
+                        "default": "main",
+                    },
                 },
                 "required": ["file_path"],
             },
@@ -47,7 +53,11 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "directory": {"type": "string", "description": "Sub-directory to search in (default: root)", "default": ""},
+                    "directory": {
+                        "type": "string",
+                        "description": "Sub-directory to search in (default: root)",
+                        "default": "",
+                    },
                 },
             },
         ),
@@ -67,7 +77,11 @@ async def list_tools() -> list[Tool]:
                     "justification": {"type": "string", "description": "Explanation of why this resource is flagged"},
                     "avg_cpu": {"type": "number", "description": "Average CPU % over lookback period"},
                     "monthly_cost": {"type": "number", "description": "Estimated monthly cost in USD"},
-                    "langsmith_trace_url": {"type": "string", "description": "LangSmith trace URL for audit", "default": ""},
+                    "langsmith_trace_url": {
+                        "type": "string",
+                        "description": "LangSmith trace URL for audit",
+                        "default": "",
+                    },
                 },
                 "required": ["instance_id", "file_path", "original_content", "modified_content", "justification"],
             },
@@ -193,7 +207,7 @@ async def _create_remediation_pr(args: dict) -> list[TextContent]:
 - Action: Scale instance count to `0` (no direct `terraform apply` — human approval required)
 
 ### Audit Trail
-- LangSmith Trace: {trace_url if trace_url else '_not available_'}
+- LangSmith Trace: {trace_url if trace_url else "_not available_"}
 
 ---
 > **This PR was generated autonomously by the SRE FinOps Orchestrator.**
@@ -228,4 +242,5 @@ async def main():
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

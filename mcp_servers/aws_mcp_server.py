@@ -8,6 +8,7 @@ IAM permissions required (read-only):
   - ec2:DescribeInstances
   - cloudwatch:GetMetricStatistics
 """
+
 from __future__ import annotations
 
 import json
@@ -22,6 +23,7 @@ from mcp.types import TextContent, Tool
 from config import cfg
 
 app = Server("aws-readonly-mcp")
+
 
 # ── Boto3 clients (read-only credentials enforced by IAM policy) ─────────────
 def _ec2():
@@ -63,8 +65,7 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="get_cpu_utilization",
             description=(
-                "Get average CPU utilization for an EC2 instance over the last N days "
-                "using CloudWatch metrics."
+                "Get average CPU utilization for an EC2 instance over the last N days using CloudWatch metrics."
             ),
             inputSchema={
                 "type": "object",
@@ -133,13 +134,15 @@ async def _list_ec2_instances(args: dict) -> list[TextContent]:
     for reservation in resp["Reservations"]:
         for inst in reservation["Instances"]:
             tags = {t["Key"]: t["Value"] for t in inst.get("Tags", [])}
-            instances.append({
-                "instance_id": inst["InstanceId"],
-                "instance_type": inst["InstanceType"],
-                "state": inst["State"]["Name"],
-                "launch_time": inst["LaunchTime"].isoformat(),
-                "tags": tags,
-            })
+            instances.append(
+                {
+                    "instance_id": inst["InstanceId"],
+                    "instance_type": inst["InstanceType"],
+                    "state": inst["State"]["Name"],
+                    "launch_time": inst["LaunchTime"].isoformat(),
+                    "tags": tags,
+                }
+            )
 
     return [TextContent(type="text", text=json.dumps(instances, indent=2))]
 
@@ -179,13 +182,26 @@ async def _get_cpu_utilization(args: dict) -> list[TextContent]:
 # On-demand hourly prices (us-east-1, Linux) for common instance types.
 # Used as fallback when Cost Explorer resource-level granularity is not enabled.
 _EC2_HOURLY_PRICE: dict[str, float] = {
-    "t2.micro": 0.0116, "t2.small": 0.023, "t2.medium": 0.0464,
-    "t3.micro": 0.0104, "t3.small": 0.0208, "t3.medium": 0.0416,
-    "t3.large": 0.0832, "t3.xlarge": 0.1664, "t3.2xlarge": 0.3328,
-    "m5.large": 0.096, "m5.xlarge": 0.192, "m5.2xlarge": 0.384,
-    "m5.4xlarge": 0.768, "m5.8xlarge": 1.536,
-    "c5.large": 0.085, "c5.xlarge": 0.17, "c5.2xlarge": 0.34,
-    "r5.large": 0.126, "r5.xlarge": 0.252, "r5.2xlarge": 0.504,
+    "t2.micro": 0.0116,
+    "t2.small": 0.023,
+    "t2.medium": 0.0464,
+    "t3.micro": 0.0104,
+    "t3.small": 0.0208,
+    "t3.medium": 0.0416,
+    "t3.large": 0.0832,
+    "t3.xlarge": 0.1664,
+    "t3.2xlarge": 0.3328,
+    "m5.large": 0.096,
+    "m5.xlarge": 0.192,
+    "m5.2xlarge": 0.384,
+    "m5.4xlarge": 0.768,
+    "m5.8xlarge": 1.536,
+    "c5.large": 0.085,
+    "c5.xlarge": 0.17,
+    "c5.2xlarge": 0.34,
+    "r5.large": 0.126,
+    "r5.xlarge": 0.252,
+    "r5.2xlarge": 0.504,
 }
 _HOURS_PER_MONTH = 730
 
@@ -243,13 +259,15 @@ async def _find_underutilized_resources(args: dict) -> list[TextContent]:
         if monthly_cost < cost_threshold:
             continue  # Cost is low, not worth flagging
 
-        flagged.append({
-            "instance_id": iid,
-            "instance_type": inst["instance_type"],
-            "tags": inst["tags"],
-            "average_cpu_percent": avg_cpu,
-            "estimated_monthly_cost_usd": monthly_cost,
-        })
+        flagged.append(
+            {
+                "instance_id": iid,
+                "instance_type": inst["instance_type"],
+                "tags": inst["tags"],
+                "average_cpu_percent": avg_cpu,
+                "estimated_monthly_cost_usd": monthly_cost,
+            }
+        )
 
     summary = {
         "flagged_count": len(flagged),
@@ -269,4 +287,5 @@ async def main():
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

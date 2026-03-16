@@ -2,6 +2,7 @@
 Notification module — Slack webhook + email mockup.
 In production, replace the mock email with an SMTP/SES call.
 """
+
 from __future__ import annotations
 
 import json
@@ -97,7 +98,7 @@ and created a Terraform Pull Request for your review.
   Finding      : {reason}
 
   Pull Request : {pr_url}
-  Trace (APM)  : {trace_url if trace_url else 'N/A'}
+  Trace (APM)  : {trace_url if trace_url else "N/A"}
 
 ACTION REQUIRED:
   - Review the Terraform diff in the PR above

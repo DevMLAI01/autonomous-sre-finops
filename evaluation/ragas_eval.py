@@ -6,6 +6,7 @@ Must pass Faithfulness >= 0.85 and Answer Relevance >= 0.85 before deployment.
 Usage:
     python -m evaluation.ragas_eval
 """
+
 from __future__ import annotations
 
 import json
@@ -105,12 +106,14 @@ def _build_ragas_dataset(eval_cases: list[dict]) -> Dataset:
         contexts.append(assessment.get("context_chunks", ["No context retrieved."]))
         ground_truths.append(gt)
 
-    return Dataset.from_dict({
-        "question": questions,
-        "answer": answers,
-        "contexts": contexts,
-        "ground_truth": ground_truths,
-    })
+    return Dataset.from_dict(
+        {
+            "question": questions,
+            "answer": answers,
+            "contexts": contexts,
+            "ground_truth": ground_truths,
+        }
+    )
 
 
 def run_evaluation() -> dict[str, float]:

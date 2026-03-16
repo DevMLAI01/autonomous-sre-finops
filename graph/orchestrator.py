@@ -11,6 +11,7 @@ Graph flow:
       ├─ SKIP      → rag_retrieve (next resource)
       └─ DONE      → END
 """
+
 from __future__ import annotations
 
 from langgraph.graph import END, START, StateGraph
@@ -46,7 +47,7 @@ def build_graph() -> StateGraph:
         route_decision,
         {
             "REMEDIATE": "remediate",
-            "SKIP": "rag_retrieve",   # loop to next resource
+            "SKIP": "rag_retrieve",  # loop to next resource
             "DONE": END,
         },
     )
