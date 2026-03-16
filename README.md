@@ -1,5 +1,13 @@
 # Autonomous SRE & Cloud FinOps Orchestrator
 
+<div align="center">
+
+| 🎯 CPU Threshold | 💰 Cost Threshold | 📊 RAG Quality Gate | 🔒 Safety |
+|:---:|:---:|:---:|:---:|
+| **< 5%** avg 7-day | **> $100**/month | Faithfulness **≥ 0.85** | Zero autonomous `terraform apply` |
+
+</div>
+
 An enterprise-grade agentic AI system that autonomously detects underutilized AWS resources,
 validates them against internal documentation via RAG, and raises Terraform IaC Pull Requests
 for human-approved remediation — with zero direct infrastructure changes.
@@ -63,6 +71,15 @@ flowchart TD
 ```
 
 > 🔒 **`terraform apply` never runs autonomously — all changes require explicit human PR approval**
+
+---
+
+## 💼 Why This Matters
+Cloud waste from idle EC2 instances is one of the largest controllable
+infrastructure costs in enterprise AWS environments. This system is designed
+to autonomously surface orphaned resources (CPU < 5% over 7 days, cost > $100/month),
+validate them against internal policy via RAG, and raise reviewed Terraform PRs —
+with zero autonomous infrastructure changes and a full audit trail on every decision.
 
 ---
 
