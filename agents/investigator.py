@@ -2,6 +2,7 @@
 Node 1 — Investigator Agent
 Queries AWS via MCP to find underutilized, costly EC2 instances.
 """
+
 from __future__ import annotations
 
 import json
@@ -57,7 +58,7 @@ async def investigate(state: OrchestratorState) -> OrchestratorState:
 
     except Exception as e:
         # Unwrap Python 3.11+ ExceptionGroup raised by asyncio TaskGroup in MCP client
-        if hasattr(e, 'exceptions') and e.exceptions:
+        if hasattr(e, "exceptions") and e.exceptions:
             e = e.exceptions[0]
         msg = f"[investigator] FAILED: {type(e).__name__}: {e}"
         print(msg)
@@ -67,5 +68,5 @@ async def investigate(state: OrchestratorState) -> OrchestratorState:
             "investigation_summary": f"Investigation failed: {e}",
             "resource_index": 0,
             "decision": "DONE",
-            "errors": errors + [msg],
+            "errors": errors + [msg],  # noqa: RUF005
         }

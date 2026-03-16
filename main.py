@@ -15,6 +15,7 @@ Usage:
     # Run RAG quality gate
     python -m evaluation.ragas_eval
 """
+
 from __future__ import annotations
 
 import argparse
@@ -53,16 +54,18 @@ async def _run_new(thread_id: str, checkpointer) -> None:
         "human_approved": None,
     }
 
-    console.print(Panel(
-        f"[bold cyan]Autonomous SRE & Cloud FinOps Orchestrator[/]\n"
-        f"Thread ID: [yellow]{thread_id}[/]\n"
-        f"Starting investigation...",
-        title="SRE FinOps Orchestrator",
-        border_style="cyan",
-    ))
+    console.print(
+        Panel(
+            f"[bold cyan]Autonomous SRE & Cloud FinOps Orchestrator[/]\n"
+            f"Thread ID: [yellow]{thread_id}[/]\n"
+            f"Starting investigation...",
+            title="SRE FinOps Orchestrator",
+            border_style="cyan",
+        )
+    )
 
     async for event in graph.astream(initial_state, config=config):
-        node = list(event.keys())[0]
+        node = list(event.keys())[0]  # noqa: RUF015
         state = event[node]
 
         if node == "investigate":
@@ -78,16 +81,18 @@ async def _run_new(thread_id: str, checkpointer) -> None:
         elif node == "__interrupt__":
             # state is a tuple of Interrupt objects; may be empty if interrupt_before fired
             payload = {}
-            if state and hasattr(state[0], 'value') and isinstance(state[0].value, dict):
+            if state and hasattr(state[0], "value") and isinstance(state[0].value, dict):
                 payload = state[0].value
-            console.print(Panel(
-                f"[bold yellow]HITL GATE — Awaiting Human Approval[/]\n\n"
-                f"{payload.get('message', 'Graph paused at HITL gate. Review the PR and resume.')}\n\n"
-                f"[dim]Resume with:[/]\n"
-                f"  uv run python main.py --resume --thread-id {thread_id} --approved",
-                title="Human-in-the-Loop",
-                border_style="yellow",
-            ))
+            console.print(
+                Panel(
+                    f"[bold yellow]HITL GATE — Awaiting Human Approval[/]\n\n"
+                    f"{payload.get('message', 'Graph paused at HITL gate. Review the PR and resume.')}\n\n"
+                    f"[dim]Resume with:[/]\n"
+                    f"  uv run python main.py --resume --thread-id {thread_id} --approved",
+                    title="Human-in-the-Loop",
+                    border_style="yellow",
+                )
+            )
             return  # Graph is paused — exit cleanly
 
     console.print(Panel("[bold green]Workflow complete.[/]", border_style="green"))
@@ -101,7 +106,7 @@ async def resume(thread_id: str, approved: bool) -> None:
         console.print(f"[cyan]Resuming thread {thread_id} with decision: {'APPROVED' if approved else 'REJECTED'}[/]")
 
         async for event in graph.astream(Command(resume=approved), config=config):
-            node = list(event.keys())[0]
+            node = list(event.keys())[0]  # noqa: RUF015
             state = event[node]
             if isinstance(state, dict):
                 console.print(f"[dim]{node}[/] -> {state.get('decision', '')}")

@@ -2,6 +2,7 @@
 Node 4 — Remediator Agent
 Uses Gemini to modify Terraform files and creates a GitHub PR via MCP.
 """
+
 from __future__ import annotations
 
 import json
@@ -15,39 +16,43 @@ from graph.state import OrchestratorState
 from config import cfg
 
 
-TERRAFORM_PATCH_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """You are a Terraform expert. Given a .tf file and a target EC2 instance ID,
+TERRAFORM_PATCH_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are a Terraform expert. Given a .tf file and a target EC2 instance ID,
 modify the Terraform configuration to set the instance count to 0 (scale it down).
 If there is no explicit count, add `count = 0` to the resource block.
 Return ONLY the complete modified .tf file content, no explanation.""",
-    ),
-    (
-        "human",
-        """Target instance ID: {instance_id}
+        ),
+        (
+            "human",
+            """Target instance ID: {instance_id}
 Original Terraform file ({file_path}):
 ```hcl
 {original_content}
 ```
 Return the full modified file:""",
-    ),
-])
+        ),
+    ]
+)
 
 
-_TF_FILE_SELECTOR_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        "You are a Terraform expert. Given a list of .tf file paths, pick the ONE file most "
-        "likely to define an EC2 instance with the given ID. Consider naming conventions: "
-        "files named 'ec2', 'instances', 'compute', or 'main' are strong candidates. "
-        "Reply with ONLY the exact file path, nothing else.",
-    ),
-    (
-        "human",
-        "Instance ID: {instance_id}\n\nAvailable .tf files:\n{file_list}\n\nBest matching file:",
-    ),
-])
+_TF_FILE_SELECTOR_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are a Terraform expert. Given a list of .tf file paths, pick the ONE file most "
+            "likely to define an EC2 instance with the given ID. Consider naming conventions: "
+            "files named 'ec2', 'instances', 'compute', or 'main' are strong candidates. "
+            "Reply with ONLY the exact file path, nothing else.",
+        ),
+        (
+            "human",
+            "Instance ID: {instance_id}\n\nAvailable .tf files:\n{file_list}\n\nBest matching file:",
+        ),
+    ]
+)
 
 
 async def _find_tf_file_for_instance(session: ClientSession, instance_id: str) -> tuple[str, str]:
@@ -67,10 +72,12 @@ async def _find_tf_file_for_instance(session: ClientSession, instance_id: str) -
         try:
             llm = get_llm(temperature=0.0)
             chain = _TF_FILE_SELECTOR_PROMPT | llm
-            response = chain.invoke({
-                "instance_id": instance_id,
-                "file_list": "\n".join(tf_files),
-            })
+            response = chain.invoke(
+                {
+                    "instance_id": instance_id,
+                    "file_list": "\n".join(tf_files),
+                }
+            )
             candidate = response.content.strip().strip("`\"'")
             if candidate in tf_files:
                 target_file = candidate
@@ -113,11 +120,13 @@ async def remediate(state: OrchestratorState) -> OrchestratorState:
                 # 2. Use Gemini to patch the Terraform file
                 llm = get_llm(temperature=0.0)
                 chain = TERRAFORM_PATCH_PROMPT | llm
-                patch_response = chain.invoke({
-                    "instance_id": instance_id,
-                    "file_path": file_path,
-                    "original_content": original_content,
-                })
+                patch_response = chain.invoke(
+                    {
+                        "instance_id": instance_id,
+                        "file_path": file_path,
+                        "original_content": original_content,
+                    }
+                )
                 modified_content = patch_response.content.strip()
                 # Strip markdown code fences if LLM wrapped the output
                 if modified_content.startswith("```"):
@@ -164,5 +173,5 @@ async def remediate(state: OrchestratorState) -> OrchestratorState:
             "pr_result": {"status": "error", "error": str(e), "instance_id": instance_id},
             "decision": "DONE" if idx + 1 >= len(flagged) else "SKIP",
             "resource_index": idx + 1,
-            "errors": errors + [msg],
+            "errors": errors + [msg],  # noqa: RUF005
         }

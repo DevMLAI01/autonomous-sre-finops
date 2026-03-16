@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autonomous-sre-finops"
+version = "1.0.0"
+description = "Autonomous SRE & Cloud FinOps Orchestrator: LangGraph + Gemini + Qdrant + MCP"
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agents*", "graph*", "rag*", "mcp_servers*", "notifications*", "evaluation*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = ["-v", "--tb=short", "--strict-markers"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow tests",
+    "hitl: HITL gate tests",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["agents", "graph", "rag", "evaluation", "mcp_servers", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "RUF"]
+ignore = [
+    "E402", "E501", "F401", "F541", "I001",
+    "B008", "B904", "C408", "W291", "W293",
+    "RUF012",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S", "N802", "N803", "ANN", "E", "F"]
+"mcp_servers/**/*.py" = ["E", "F", "B"]
+"data/**/*.py" = ["E", "F", "ANN"]
+"scripts/**/*.py" = ["T201", "ANN", "E"]
+"evaluation/**/*.py" = ["E", "F"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+ignore_missing_imports = true
+no_strict_optional = true
+check_untyped_defs = false
+disallow_untyped_defs = false
+exclude = ["tests/", "docs/", "terraform_templates/"]
+
+[tool.coverage.run]
+source = ["agents", "rag", "graph"]
+omit = ["tests/*", "docs/*", "terraform_templates/*", "*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 60
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

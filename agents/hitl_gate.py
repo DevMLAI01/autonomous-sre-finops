@@ -3,6 +3,7 @@ Node 5 — Human-in-the-Loop (HITL) Gate
 Pauses execution, sends notification with PR link + LangSmith trace,
 and waits for an explicit human approval signal before concluding.
 """
+
 from __future__ import annotations
 
 from graph.state import OrchestratorState
@@ -59,21 +60,23 @@ async def hitl_gate(state: OrchestratorState) -> OrchestratorState:
     except Exception as e:
         msg = f"[hitl_gate] Notification failed (non-fatal): {e}"
         print(msg)
-        errors = errors + [msg]
+        errors = errors + [msg]  # noqa: RUF005
 
     # ── INTERRUPT: pause graph execution until human resumes ──────────────
-    human_decision = interrupt({
-        "type": "approval_request",
-        "instance_id": instance_id,
-        "pr_url": pr_url,
-        "pr_number": pr_number,
-        "message": (
-            f"SRE FinOps Orchestrator flagged instance {instance_id} "
-            f"(CPU={avg_cpu:.1f}%, cost=${monthly_cost:.2f}/mo).\n"
-            f"PR: {pr_url}\n"
-            f"Approve remediation? Reply with True/False."
-        ),
-    })
+    human_decision = interrupt(
+        {
+            "type": "approval_request",
+            "instance_id": instance_id,
+            "pr_url": pr_url,
+            "pr_number": pr_number,
+            "message": (
+                f"SRE FinOps Orchestrator flagged instance {instance_id} "
+                f"(CPU={avg_cpu:.1f}%, cost=${monthly_cost:.2f}/mo).\n"
+                f"PR: {pr_url}\n"
+                f"Approve remediation? Reply with True/False."
+            ),
+        }
+    )
 
     approved = bool(human_decision)
     print(f"[hitl_gate] Human decision received: {'APPROVED' if approved else 'REJECTED'}")

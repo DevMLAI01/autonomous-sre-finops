@@ -2,6 +2,7 @@
 Node 2 — RAG Retriever Agent
 Cross-references flagged resources against internal docs in Qdrant.
 """
+
 from __future__ import annotations
 
 from graph.state import OrchestratorState
@@ -47,5 +48,5 @@ async def rag_retrieve(state: OrchestratorState) -> OrchestratorState:
             **state,
             "current_resource": resource,
             "rag_assessment": safe_assessment,
-            "errors": errors + [msg],
+            "errors": errors + [msg],  # noqa: RUF005
         }

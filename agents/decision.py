@@ -2,6 +2,7 @@
 Node 3 — Decision Gate
 Routes workflow based on RAG assessment: REMEDIATE, SKIP, or DONE.
 """
+
 from __future__ import annotations
 
 from graph.state import OrchestratorState
@@ -42,7 +43,7 @@ async def decide(state: OrchestratorState) -> OrchestratorState:
     except Exception as e:
         msg = f"[decision] FAILED: {e}"
         print(msg)
-        return {**state, "decision": "DONE", "errors": errors + [msg]}
+        return {**state, "decision": "DONE", "errors": errors + [msg]}  # noqa: RUF005
 
 
 def route_decision(state: OrchestratorState) -> str:
