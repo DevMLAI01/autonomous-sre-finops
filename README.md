@@ -8,55 +8,61 @@ for human-approved remediation — with zero direct infrastructure changes.
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
-```
-+------------------------------------------------------------------+
-|                    LangGraph State Machine                        |
-|                                                                   |
-|  START                                                            |
-|    |                                                              |
-|    v                                                              |
-|  +-----------------+                                              |
-|  |  Node 1         |  AWS MCP Server (read-only)                  |
-|  |  Investigator   |<-- CloudWatch CPU + EC2 Describe             |
-|  |                 |    Flags: CPU < 5%, Cost > $100/mo           |
-|  +--------+--------+                                              |
-|           |                                                       |
-|    v                                                              |
-|  +-----------------+                                              |
-|  |  Node 2         |  Qdrant Serverless (vector search)           |
-|  |  RAG Retriever  |<-- gemini-embedding-001 (3072 dims)          |
-|  |                 |    "Is this resource protected?"             |
-|  +--------+--------+                                              |
-|           |                                                       |
-|    v                                                              |
-|  +-----------------+                                              |
-|  |  Node 3         |                                              |
-|  |  Decision Gate  |--PROTECTED--> log & loop/END                 |
-|  |                 |--ORPHANED --> Node 4                         |
-|  +--------+--------+                                              |
-|           | ORPHANED                                              |
-|    v                                                              |
-|  +-----------------+                                              |
-|  |  Node 4         |  GitHub MCP Server                           |
-|  |  Remediator     |<-- Gemini patches .tf file (count = 0)       |
-|  |                 |    Opens PR with full audit trail            |
-|  +--------+--------+                                              |
-|           |                                                       |
-|    v                                                              |
-|  +-----------------+  <-- INTERRUPT (graph pauses here)           |
-|  |  Node 5         |                                              |
-|  |  HITL Gate      |  Sends Slack + Email with PR link            |
-|  |                 |  Awaits human approval to conclude           |
-|  +--------+--------+                                              |
-|           |                                                       |
-|          END                                                      |
-+------------------------------------------------------------------+
+A **5-node LangGraph orchestrator** that detects underutilized AWS resources,
+classifies them via RAG, auto-generates Terraform PRs, and enforces mandatory
+human approval before any infrastructure change.
+
+```mermaid
+flowchart TD
+    A([⏰ Trigger\nManual or Scheduled]) --> B
+
+    subgraph GRAPH [LangGraph Orchestrator · SQLite Checkpoints]
+        direction TB
+
+        B[🔍 Investigator\nEC2 DescribeInstances\nCloudWatch 7-day CPU avg]
+        B --> C
+
+        C[📚 RAG Retriever\nQdrant vector search\nGemini classification]
+        C --> D
+
+        D{🚦 Decision Gate\nConfidence threshold}
+        D -->|ORPHANED ≥ 0.70| E
+        D -->|PROTECTED or\nconfidence < 0.70| SKIP
+
+        E[🔧 Remediator\nJinja2 Terraform patch\nGitHub PR · idempotency guard]
+        E --> F
+
+        F{👤 HITL Gate\n⏸ Graph interrupt\nAwaits human decision}
+    end
+
+    F -->|✅ python main.py --approved| G([✅ PR ready to merge\nAudit trail logged])
+    F -->|❌ python main.py --rejected| H([🚫 PR closed\nState archived])
+    SKIP([🛡️ Resource protected\nNo action taken])
+
+    subgraph AWS [AWS · Read-Only IAM]
+        I[EC2 DescribeInstances]
+        J[CloudWatch GetMetricStatistics]
+    end
+
+    subgraph OBS [Observability]
+        K[LangSmith Traces]
+        L[Ragas Evaluation\nFaithfulness ≥ 0.85]
+    end
+
+    B --- I & J
+    C --- K
+    C --- L
+
+    style GRAPH fill:#1a1a2e,stroke:#4a9eff,color:#fff
+    style AWS fill:#1a2e1a,stroke:#4aff9e,color:#fff
+    style OBS fill:#2e2a1a,stroke:#ffcc4a,color:#fff
+    style F fill:#2e1a2e,stroke:#cc4aff,color:#fff
+    style D fill:#2e1a1a,stroke:#ff4a4a,color:#fff
 ```
 
-**Key design principle:** No `terraform apply` ever runs autonomously. All remediation goes
-through a GitHub PR requiring explicit human review and merge.
+> 🔒 **`terraform apply` never runs autonomously — all changes require explicit human PR approval**
 
 ---
 
